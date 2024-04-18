@@ -16,7 +16,7 @@ using namespace std;
 /*
 * 输出 tecplotWrite2D 数据
 */
-void tecplotWrite2D(string filename, const vector<vector<double>>& X, const vector<vector<double>>& Y, const vector<vector<double>>&& value, string VARIABLES);
+void tecplotWrite2D(string filename, const vector<vector<vector<double>>>&& data, const vector<string>&& labels={});
 
 /*
 * 读取Blazek ".grd" 类型网格
@@ -61,7 +61,7 @@ int main(int argc, char * argv[])
             // 输出 tecplot 格式文件
             string tecplot_filename = filename.substr(0, filename.length() - 4);
             cout << "output " <<"tecplot format " <<tecplot_filename <<"..."<<endl; 
-            tecplotWrite2D(tecplot_filename, X, Y, {{}}, "");
+            tecplotWrite2D(tecplot_filename, {X, Y}, {"x", "y"});
             string plot3d_filename = filename.substr(0, filename.length() - 4);
             cout << "output " << "plot3d format " <<plot3d_filename <<"..."<<endl; 
             PLOT3Dwrite2D(plot3d_filename, X, Y);
@@ -75,6 +75,27 @@ int main(int argc, char * argv[])
         }
     } else if (flag == 1) {
         // 执行后处理相关代码
+         cout << "******************************Poseprocessing***********************************************"<<endl;
+        cout <<"Plot flow field data, press 0."<<endl;
+        cout <<"plot residual data, press 1. "<<endl;
+        cout <<"plot surface data, press 2. "<<endl;
+        cout <<"Other number: Quit"<<endl;
+        cin >> flag;
+        ERROR_Handle(!cin.fail(), "input error!");
+        // 0: 处理流场数据
+        if(flag == 0){
+            
+        }
+        // 1: 处理残差数据
+        else if(flag == 1){
+
+        }
+        // 2: 处理表面数据
+        else if(flag == 2){
+
+        }else {
+
+        }
     } else {
         std::cout << "Quit" << std::endl;
         return 0;
@@ -83,26 +104,35 @@ int main(int argc, char * argv[])
     return 0;
 }
 
-
-void tecplotWrite2D(string filename, const vector<vector<double>>& X, const vector<vector<double>>& Y, const vector<vector<double>>&& value, string VARIABLES)
-{
+void tecplotWrite2D(string filename, const vector<vector<vector<double>>>&& data, const vector<string>&& labels){
     filename += ".plt";
     ofstream file(filename);
-    const int m = X.size(); const int n = X[0].size();
-    bool flag = (value.size() == 0)|| (value[0].size() == 0);      // 判断是否有值
+    auto variables(labels);                                         // 标签数组    
+    const int N = data.size();                                      // 数据的数量
+    for(int i = labels.size()+1; i <= N; i++){                      // 填充 variables
+        variables.push_back("V"+to_string(i));
+    }
+    const int m = data[0].size(); const int n = data[0][0].size();  // 网格大小
     /*--- tecplot 文件头 ---*/
-    file << "TITLE = \"contour\"" << endl;						///< 标题
-    if(VARIABLES.length() != 0) file << "VARIABLES = " << VARIABLES << endl;	//数据名称
+    file << "TITLE = \"contour\"" << endl;						    ///< 标题
+    file << "VARIABLES = ";                                         ///< 输出标题
+    for(int i = 0; i < variables.size(); i++){
+        if(i != (variables.size() - 1)){
+            file << "\"" << variables[i] << "\", ";
+        }else{
+            file <<"\"" << variables[i] << "\"" << endl;
+        }
+    }
+    //
     file << "zone I = " << m << ", " << "J = " << n << endl;	///< 数据大小
     file << "DATAPACKING = point" << endl;						///< 每一行是一个点
     /*--- tecplot 数据 ---*/
     for (int j = 0; j < n; j++) {								///< 从左到右，从下到上遍历网格
         for (int i = m - 1; i >= 0; i--) {
-            if(flag){   // 无值
-                file << scientific << X[i][j] << "\t" << Y[i][j] <<  endl;
-            }else{      // 有值
-                file << scientific << X[i][j] << "\t" << Y[i][j] << "\t" << value[i][j] << endl;
+            for(int k = 0; k < N; k++){
+                file << data[k][i][j] << " ";
             }
+            file << endl;
         }
     }
     file.close();
