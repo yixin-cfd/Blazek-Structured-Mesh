@@ -24,6 +24,11 @@ void tecplotWrite2D(string filename, const vector<vector<vector<double>>>&& data
 void Read_Blazek_grd(string filename, vector<vector<double>> &X, vector<vector<double>> &Y); 
 
 /*
+* 读取Blazek ".v2d" 流场类型数据
+*/
+void Read_Blazek_FlowV2D(string filename, vector<vector<vector<double>>>& data, vector<string>& labels); 
+
+/*
 * 写入 PLOT3D 类型网格
 */
 void PLOT3Dwrite2D(string filename, const vector<vector<double>> &X, const vector<vector<double>> &Y);
@@ -75,7 +80,7 @@ int main(int argc, char * argv[])
         }
     } else if (flag == 1) {
         // 执行后处理相关代码
-         cout << "******************************Poseprocessing***********************************************"<<endl;
+         cout << "******************************Postprocessing***********************************************"<<endl;
         cout <<"Plot flow field data, press 0."<<endl;
         cout <<"plot residual data, press 1. "<<endl;
         cout <<"plot surface data, press 2. "<<endl;
@@ -84,7 +89,11 @@ int main(int argc, char * argv[])
         ERROR_Handle(!cin.fail(), "input error!");
         // 0: 处理流场数据
         if(flag == 0){
-            
+            cout <<"Please enter the path of the file to be converted:";      
+            cin >> filename;  ERROR_Handle(!cin.fail(), "input error!");
+            cout << "\r"; 
+            vector<vector<vector<double>>> data; vector<string> labels;
+            Read_Blazek_FlowV2D(filename, data, labels);
         }
         // 1: 处理残差数据
         else if(flag == 1){
@@ -215,4 +224,26 @@ void Read_Blazek_grd(string filename, vector<vector<double>> &X, vector<vector<d
         K++;
     }
     file.close();
+}
+
+void Read_Blazek_FlowV2D(string filename, vector<vector<vector<double>>>& data, vector<string>& labels){
+    // 读取文件
+    std::ifstream file(filename, std::ios::in);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file!" << std::endl;
+        exit(1);
+    }
+    int N;      // 数据数量
+    int I, J;   // 网格尺寸
+    std::string line;
+    // 跳过
+    getline(file, line);
+    getline(file, line);
+    getline(file, line);
+    // 读取数据数量
+    getline(file, line);
+    istringstream iss(line);
+    cout << line<< endl;
+    iss >> N >> N;
+    cout << N <<endl;
 }
