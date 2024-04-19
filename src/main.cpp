@@ -6,12 +6,27 @@
 #include <vector>
 #include <cassert>
 #include <limits>
+#include <algorithm>
 /*
 * date: 2024-4-17
 * author: JLX
 * func: Blazek 结构化欧拉的前后处理程序
 */
 using namespace std;
+
+// 去除字符串前后的所有空白字符
+std::string trim(const std::string& str) {
+    auto left = std::find_if_not(str.begin(), str.end(), [](unsigned char ch) {
+        return std::isspace(ch);
+    });
+
+    auto right = std::find_if_not(str.rbegin(), str.rend(), [](unsigned char ch) {
+        return std::isspace(ch);
+    }).base();
+
+    if (left >= right) return "";
+    return std::string(left, right);
+}
 
 /*
 * 输出 tecplotWrite2D 数据
@@ -253,6 +268,7 @@ void Read_Blazek_FlowV2D(string filename, vector<vector<vector<double>>>& data, 
     labels = {};
     for(int i = 0; i < N; i++){
         getline(file, line);
+        line = trim(line);
         labels.push_back(line);
     }
      // 读取网格尺寸
