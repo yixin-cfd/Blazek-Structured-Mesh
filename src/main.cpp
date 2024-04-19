@@ -94,6 +94,9 @@ int main(int argc, char * argv[])
             cout << "\r"; 
             vector<vector<vector<double>>> data; vector<string> labels;
             Read_Blazek_FlowV2D(filename, data, labels);
+            string tecplot_filename = filename.substr(0, filename.length() - 4);
+            cout << "output " <<"tecplot format " <<tecplot_filename <<"..."<<endl; 
+            tecplotWrite2D(tecplot_filename, move(data), move(labels));
         }
         // 1: 处理残差数据
         else if(flag == 1){
@@ -245,5 +248,38 @@ void Read_Blazek_FlowV2D(string filename, vector<vector<vector<double>>>& data, 
     istringstream iss(line);
     cout << line<< endl;
     iss >> N >> N;
-    cout << N <<endl;
+    cout << "Num of data: "<<N <<endl;
+    // 读取labels
+    labels = {};
+    for(int i = 0; i < N; i++){
+        getline(file, line);
+        labels.push_back(line);
+    }
+     // 读取网格尺寸
+    getline(file, line);
+    iss = istringstream(line);
+    iss >> I >> J;
+    cout << "I: "<<I<<", J: "<<J<<endl;
+    //
+    getline(file, line);
+    getline(file, line);
+    // 初始化 data
+    data = vector<vector<vector<double>>>(N);
+    for(int i =0; i < N; i++){
+        data[i] = vector<vector<double>>(J, vector<double>(I));
+    }
+    //
+    int K = 0,cnt = I*J;
+    int i, j;
+    while(cnt--){
+        j = K % I;
+        i = J - (K/I) - 1;
+        // 读取坐标
+        getline(file, line);
+        iss = istringstream(line);
+        for(int k = 0; k < N; k++){
+            iss >> data[k][i][j];
+        }
+        K++;
+    }
 }
